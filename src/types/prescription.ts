@@ -21,6 +21,24 @@ export interface TranscriptionEntry {
   language: string;
 }
 
+export interface PatientBasicInfo {
+  name: string;
+  age: string;
+  gender: string;
+  address: string;
+  occupation: string;
+}
+
+export interface PatientVitals {
+  bloodPressure: string;
+  pulse: string;
+  temperature: string;
+  weight: string;
+  height: string;
+  respiratoryRate: string;
+  spo2: string;
+}
+
 export interface PrescriptionReport {
   id: string;
   patientInfo: {
@@ -28,6 +46,13 @@ export interface PrescriptionReport {
     medicalHistory: string;
     currentCondition: string;
   };
+  pastHistory: string;
+  drugHistory: string;
+  vaccinationHistory: string;
+  childrenBirthHistory: string;
+  pregnancyHistory: string;
+  familyHistory: string;
+  investigations: string[];
   diagnosis: string;
   medications: {
     name: string;
@@ -37,6 +62,7 @@ export interface PrescriptionReport {
     instructions: string;
   }[];
   advice: string[];
+  dietChart: string[];
   followUp: string;
   generatedAt: Date;
   consultationTranscript: string;
