@@ -5,7 +5,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { AudioRecorder } from '@/components/AudioRecorder';
 import { TranscriptionDisplay } from '@/components/TranscriptionDisplay';
 import { PrescriptionReportComponent } from '@/components/PrescriptionReport';
-import { PatientInfoForm, PatientInfo } from '@/components/PatientInfoForm';
+import { PatientInfoForm, PatientInfo, PatientVitals } from '@/components/PatientInfoForm';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { TranscriptionEntry, PrescriptionReport, SUPPORTED_LANGUAGES } from '@/types/prescription';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,17 @@ const Index = () => {
     name: '',
     age: '',
     gender: '',
+    address: '',
+    occupation: '',
+  });
+  const [patientVitals, setPatientVitals] = useState<PatientVitals>({
+    bloodPressure: '',
+    pulse: '',
+    temperature: '',
+    weight: '',
+    height: '',
+    respiratoryRate: '',
+    spo2: '',
   });
 
   const handleTranscription = useCallback((entry: TranscriptionEntry) => {
@@ -50,6 +61,9 @@ const Index = () => {
     return lang?.name || code;
   };
 
+  const isChild = patientInfo.gender?.includes('child');
+  const isFemale = patientInfo.gender === 'female' || patientInfo.gender === 'child-female';
+
   const handleGeneratePrescription = async () => {
     if (transcriptions.length === 0) {
       toast.error('No transcription available. Please record a consultation first.');
@@ -71,7 +85,12 @@ const Index = () => {
             name: patientInfo.name || 'Not provided',
             age: patientInfo.age || 'N/A',
             gender: patientInfo.gender || 'N/A',
+            address: patientInfo.address || 'N/A',
+            occupation: patientInfo.occupation || 'N/A',
           },
+          vitals: patientVitals,
+          isChild,
+          isFemale,
         },
       });
 
@@ -85,9 +104,17 @@ const Index = () => {
         const report: PrescriptionReport = {
           id: `rx-${Date.now()}`,
           patientInfo: data.prescription.patientInfo,
+          pastHistory: data.prescription.pastHistory || '',
+          drugHistory: data.prescription.drugHistory || '',
+          vaccinationHistory: data.prescription.vaccinationHistory || '',
+          childrenBirthHistory: data.prescription.childrenBirthHistory || '',
+          pregnancyHistory: data.prescription.pregnancyHistory || '',
+          familyHistory: data.prescription.familyHistory || '',
+          investigations: data.prescription.investigations || [],
           diagnosis: data.prescription.diagnosis,
           medications: data.prescription.medications || [],
           advice: data.prescription.advice || [],
+          dietChart: data.prescription.dietChart || [],
           followUp: data.prescription.followUp,
           generatedAt: new Date(),
           consultationTranscript: fullTranscript,
@@ -107,7 +134,8 @@ const Index = () => {
     setTranscriptions([]);
     setPrescription(null);
     setSelectedLanguage('en');
-    setPatientInfo({ name: '', age: '', gender: '' });
+    setPatientInfo({ name: '', age: '', gender: '', address: '', occupation: '' });
+    setPatientVitals({ bloodPressure: '', pulse: '', temperature: '', weight: '', height: '', respiratoryRate: '', spo2: '' });
     toast.success('Session reset. Ready for new consultation.');
   };
 
@@ -143,7 +171,9 @@ const Index = () => {
         <div className="mb-4 sm:mb-6">
           <PatientInfoForm
             patientInfo={patientInfo}
+            vitals={patientVitals}
             onPatientInfoChange={setPatientInfo}
+            onVitalsChange={setPatientVitals}
             disabled={isListening}
           />
         </div>
@@ -184,11 +214,12 @@ const Index = () => {
               report={prescription}
               isGenerating={isGenerating}
               patientDetails={patientInfo}
+              patientVitals={patientVitals}
             />
           </div>
         </div>
 
-        {/* Instructions - Mobile optimized */}
+        {/* Instructions */}
         <div className="mt-8 sm:mt-12 medical-card">
           <h3 className="text-base sm:text-lg font-semibold text-foreground font-heading mb-3 sm:mb-4">
             How to Use MedScribe AI
@@ -201,7 +232,7 @@ const Index = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Enter Patient Info</h4>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Fill in patient name, age, and gender
+                  Fill in patient details, address, occupation & vitals
                 </p>
               </div>
             </div>
@@ -234,7 +265,7 @@ const Index = () => {
               <div>
                 <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Generate & Share</h4>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Generate prescription report
+                  Generate comprehensive prescription report
                 </p>
               </div>
             </div>
