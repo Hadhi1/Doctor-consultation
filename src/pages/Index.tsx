@@ -5,6 +5,7 @@ import { LanguageSelector } from '@/components/LanguageSelector';
 import { AudioRecorder } from '@/components/AudioRecorder';
 import { TranscriptionDisplay } from '@/components/TranscriptionDisplay';
 import { PrescriptionReportComponent } from '@/components/PrescriptionReport';
+import { PatientInfoForm, PatientInfo } from '@/components/PatientInfoForm';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { TranscriptionEntry, PrescriptionReport, SUPPORTED_LANGUAGES } from '@/types/prescription';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,11 @@ const Index = () => {
   const [transcriptions, setTranscriptions] = useState<TranscriptionEntry[]>([]);
   const [prescription, setPrescription] = useState<PrescriptionReport | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [patientInfo, setPatientInfo] = useState<PatientInfo>({
+    name: '',
+    age: '',
+    gender: '',
+  });
 
   const handleTranscription = useCallback((entry: TranscriptionEntry) => {
     setTranscriptions(prev => [...prev, entry]);
@@ -61,6 +67,11 @@ const Index = () => {
         body: { 
           transcript: fullTranscript,
           language: getLanguageName(selectedLanguage),
+          patientDetails: {
+            name: patientInfo.name || 'Not provided',
+            age: patientInfo.age || 'N/A',
+            gender: patientInfo.gender || 'N/A',
+          },
         },
       });
 
@@ -96,6 +107,7 @@ const Index = () => {
     setTranscriptions([]);
     setPrescription(null);
     setSelectedLanguage('en');
+    setPatientInfo({ name: '', age: '', gender: '' });
     toast.success('Session reset. Ready for new consultation.');
   };
 
@@ -125,6 +137,15 @@ const Index = () => {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Patient Info Form */}
+        <div className="mb-4 sm:mb-6">
+          <PatientInfoForm
+            patientInfo={patientInfo}
+            onPatientInfoChange={setPatientInfo}
+            disabled={isListening}
+          />
         </div>
 
         {/* Main Content Grid */}
@@ -162,6 +183,7 @@ const Index = () => {
             <PrescriptionReportComponent
               report={prescription}
               isGenerating={isGenerating}
+              patientDetails={patientInfo}
             />
           </div>
         </div>
@@ -171,15 +193,15 @@ const Index = () => {
           <h3 className="text-base sm:text-lg font-semibold text-foreground font-heading mb-3 sm:mb-4">
             How to Use MedScribe AI
           </h3>
-          <div className="grid sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid sm:grid-cols-4 gap-4 sm:gap-6">
             <div className="flex sm:flex-col items-start sm:items-center text-left sm:text-center gap-3 sm:gap-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 sm:mx-auto sm:mb-3">
                 <span className="text-lg sm:text-xl font-bold text-primary">1</span>
               </div>
               <div>
-                <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Select Language</h4>
+                <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Enter Patient Info</h4>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Choose consultation language (English, Hindi, Telugu, Tamil, Kannada, Marathi)
+                  Fill in patient name, age, and gender
                 </p>
               </div>
             </div>
@@ -188,9 +210,9 @@ const Index = () => {
                 <span className="text-lg sm:text-xl font-bold text-primary">2</span>
               </div>
               <div>
-                <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Record Consultation</h4>
+                <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Select Language</h4>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Click the microphone and speak clearly during the consultation
+                  Choose consultation language
                 </p>
               </div>
             </div>
@@ -199,9 +221,20 @@ const Index = () => {
                 <span className="text-lg sm:text-xl font-bold text-primary">3</span>
               </div>
               <div>
+                <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Record Consultation</h4>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Click the microphone and speak
+                </p>
+              </div>
+            </div>
+            <div className="flex sm:flex-col items-start sm:items-center text-left sm:text-center gap-3 sm:gap-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 sm:mx-auto sm:mb-3">
+                <span className="text-lg sm:text-xl font-bold text-primary">4</span>
+              </div>
+              <div>
                 <h4 className="font-medium text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">Generate & Share</h4>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Stop recording and generate a detailed prescription report
+                  Generate prescription report
                 </p>
               </div>
             </div>

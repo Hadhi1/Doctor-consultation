@@ -11,7 +11,9 @@ import {
   Copy,
   CheckCircle,
   FileDown,
-  MessageCircle
+  MessageCircle,
+  Printer,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,13 +21,24 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
+interface PatientDetails {
+  name: string;
+  age: string;
+  gender: string;
+}
+
 interface PrescriptionReportProps {
   report: PrescriptionReportType | null;
   isGenerating: boolean;
+  patientDetails?: PatientDetails;
 }
 
-export function PrescriptionReportComponent({ report, isGenerating }: PrescriptionReportProps) {
+export function PrescriptionReportComponent({ report, isGenerating, patientDetails }: PrescriptionReportProps) {
   const [copied, setCopied] = useState(false);
+
+  const patientName = patientDetails?.name || 'Not provided';
+  const patientAge = patientDetails?.age || 'N/A';
+  const patientGender = patientDetails?.gender ? patientDetails.gender.charAt(0).toUpperCase() + patientDetails.gender.slice(1) : 'N/A';
 
   if (isGenerating) {
     return (
@@ -64,10 +77,15 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
     const lines = [
       '═══════════════════════════════════════',
       '         PRESCRIPTION REPORT',
-      '        Habsen Tech Communication',
+      '             Habsen Tech',
       '═══════════════════════════════════════',
       '',
       `Generated: ${report.generatedAt.toLocaleString('en-IN')}`,
+      '',
+      '── PATIENT DETAILS ──',
+      `Name: ${patientName}`,
+      `Age: ${patientAge}`,
+      `Gender: ${patientGender}`,
       '',
       '── PATIENT SYMPTOMS ──',
       ...report.patientInfo.symptoms.map(s => `• ${s}`),
@@ -97,9 +115,9 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
       report.followUp,
       '',
       '═══════════════════════════════════════',
-      'Developed by Habsen Tech Communication',
+      'Developed by Habsen Tech',
       'Email: hadhi@habsentech.com',
-      'Phone: 9110593766',
+      'Phone: +91 8919247590',
       '═══════════════════════════════════════',
     ];
     return lines.join('\n');
@@ -148,11 +166,24 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
     
     pdf.setFontSize(10);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Habsen Tech Communication', pageWidth / 2, 28, { align: 'center' });
+    pdf.text('Habsen Tech', pageWidth / 2, 28, { align: 'center' });
     pdf.text(`Generated: ${report.generatedAt.toLocaleString('en-IN')}`, pageWidth / 2, 35, { align: 'center' });
 
-    y = 55;
+    y = 50;
     pdf.setTextColor(0, 0, 0);
+
+    // Patient Details Box
+    pdf.setFillColor(240, 253, 250);
+    pdf.roundedRect(margin - 5, y - 5, maxWidth + 10, 25, 3, 3, 'F');
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(13, 148, 136);
+    pdf.text('PATIENT DETAILS', margin, y + 3);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(60, 60, 60);
+    pdf.text(`Name: ${patientName}  |  Age: ${patientAge}  |  Gender: ${patientGender}`, margin, y + 14);
+    y += 35;
 
     // Helper function to add section
     const addSection = (title: string, content: string | string[], icon?: string) => {
@@ -262,10 +293,126 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
     
     pdf.setFontSize(8);
     pdf.setTextColor(255, 255, 255);
-    pdf.text('Developed by Habsen Tech Communication | Email: hadhi@habsentech.com | Phone: +91 9110593766', pageWidth / 2, footerY, { align: 'center' });
+    pdf.text('Developed by Habsen Tech | Email: hadhi@habsentech.com | Phone: +91 8919247590', pageWidth / 2, footerY, { align: 'center' });
 
     pdf.save(`prescription-${report.id}.pdf`);
     toast.success('PDF downloaded successfully!');
+  };
+
+  const handlePrint = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Prescription Report - ${patientName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+          .header { background: #0D9488; color: white; padding: 20px; text-align: center; margin-bottom: 20px; border-radius: 8px; }
+          .header h1 { font-size: 24px; margin-bottom: 5px; }
+          .header p { font-size: 12px; opacity: 0.9; }
+          .patient-box { background: #f0fdfa; border: 1px solid #0D9488; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+          .patient-box h3 { color: #0D9488; margin-bottom: 8px; font-size: 14px; }
+          .patient-info { display: flex; gap: 30px; font-size: 13px; }
+          .section { margin-bottom: 20px; }
+          .section h3 { color: #0D9488; border-bottom: 2px solid #0D9488; padding-bottom: 5px; margin-bottom: 10px; font-size: 14px; }
+          .section p, .section li { font-size: 13px; line-height: 1.6; }
+          .symptoms { display: flex; flex-wrap: wrap; gap: 8px; }
+          .symptom { background: #FEF3C7; color: #D97706; padding: 4px 12px; border-radius: 15px; font-size: 12px; }
+          .medication { background: #f0fdf4; border: 1px solid #22c55e; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+          .medication h4 { color: #22c55e; margin-bottom: 8px; font-size: 14px; }
+          .medication-details { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 12px; }
+          .diagnosis { background: #f0fdfa; border: 1px solid #0D9488; padding: 15px; border-radius: 8px; }
+          .diagnosis h3 { color: #0D9488; margin-bottom: 8px; }
+          .diagnosis p { font-weight: 500; }
+          .follow-up { background: #EFF6FF; border: 1px solid #3B82F6; padding: 15px; border-radius: 8px; }
+          .follow-up h3 { color: #3B82F6; margin-bottom: 8px; }
+          .footer { background: #1e293b; color: white; padding: 15px; text-align: center; margin-top: 30px; border-radius: 8px; font-size: 11px; }
+          ul { padding-left: 20px; }
+          @media print { body { padding: 10px; } .header, .footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>PRESCRIPTION REPORT</h1>
+          <p>Habsen Tech</p>
+          <p>Generated: ${report.generatedAt.toLocaleString('en-IN')}</p>
+        </div>
+        
+        <div class="patient-box">
+          <h3>PATIENT DETAILS</h3>
+          <div class="patient-info">
+            <span><strong>Name:</strong> ${patientName}</span>
+            <span><strong>Age:</strong> ${patientAge}</span>
+            <span><strong>Gender:</strong> ${patientGender}</span>
+          </div>
+        </div>
+        
+        <div class="section">
+          <h3>SYMPTOMS</h3>
+          <div class="symptoms">
+            ${report.patientInfo.symptoms.map(s => `<span class="symptom">${s}</span>`).join('')}
+          </div>
+        </div>
+        
+        <div class="section">
+          <h3>MEDICAL HISTORY</h3>
+          <p>${report.patientInfo.medicalHistory}</p>
+        </div>
+        
+        <div class="section">
+          <h3>CURRENT CONDITION</h3>
+          <p>${report.patientInfo.currentCondition}</p>
+        </div>
+        
+        <div class="section diagnosis">
+          <h3>DIAGNOSIS</h3>
+          <p>${report.diagnosis}</p>
+        </div>
+        
+        <div class="section">
+          <h3>MEDICATIONS</h3>
+          ${report.medications.map((med, i) => `
+            <div class="medication">
+              <h4>${i + 1}. ${med.name}</h4>
+              <div class="medication-details">
+                <span><strong>Dosage:</strong> ${med.dosage}</span>
+                <span><strong>Frequency:</strong> ${med.frequency}</span>
+                <span><strong>Duration:</strong> ${med.duration}</span>
+                <span><strong>Instructions:</strong> ${med.instructions}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="section">
+          <h3>MEDICAL ADVICE</h3>
+          <ul>
+            ${report.advice.map(a => `<li>${a}</li>`).join('')}
+          </ul>
+        </div>
+        
+        <div class="section follow-up">
+          <h3>FOLLOW-UP</h3>
+          <p>${report.followUp}</p>
+        </div>
+        
+        <div class="footer">
+          <p>Developed by Habsen Tech | Email: hadhi@habsentech.com | Phone: +91 8919247590</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+    toast.success('Opening print dialog...');
   };
 
   const handleWhatsAppShare = () => {
@@ -304,7 +451,7 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
         </div>
         
         {/* Action Buttons - Mobile Grid */}
-        <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
+        <div className="grid grid-cols-4 sm:flex sm:flex-wrap gap-2">
           <Button 
             variant="outline" 
             size="sm" 
@@ -333,10 +480,19 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
             <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePrint}
+            className="text-xs sm:text-sm"
+          >
+            <Printer className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Print</span>
+          </Button>
+          <Button 
             variant="default" 
             size="sm" 
             onClick={handleWhatsAppShare}
-            className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+            className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm col-span-2 sm:col-span-1"
           >
             <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
             <span className="hidden sm:inline">WhatsApp</span>
@@ -355,6 +511,28 @@ export function PrescriptionReportComponent({ report, isGenerating }: Prescripti
 
       <ScrollArea className="h-[350px] sm:h-[450px] lg:h-[500px] pr-2 sm:pr-4">
         <div className="space-y-4 sm:space-y-6">
+          {/* Patient Details */}
+          <section className="p-3 sm:p-4 bg-primary/5 border border-primary/20 rounded-xl">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <User className="w-4 h-4 text-primary" />
+              <h4 className="font-semibold text-primary text-sm sm:text-base">Patient Details</h4>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div>
+                <span className="text-muted-foreground">Name:</span>
+                <span className="ml-1 text-foreground font-medium">{patientName}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Age:</span>
+                <span className="ml-1 text-foreground font-medium">{patientAge}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Gender:</span>
+                <span className="ml-1 text-foreground font-medium">{patientGender}</span>
+              </div>
+            </div>
+          </section>
+
           {/* Symptoms */}
           <section>
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
