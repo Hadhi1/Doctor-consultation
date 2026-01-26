@@ -7,7 +7,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-4 text-center">
           <div>
             <p className="font-semibold font-heading text-sm sm:text-base">
-              Developed by Habsen Tech Communication
+              Developed by Habsen Tech
             </p>
             <p className="text-xs sm:text-sm text-primary-foreground/70 mt-1">
               Innovative Healthcare Solutions
@@ -24,17 +24,17 @@ export function Footer() {
             </a>
             <span className="hidden sm:inline text-primary-foreground/30">|</span>
             <a 
-              href="tel:+919110593766" 
+              href="tel:+918919247590" 
               className="flex items-center gap-2 hover:text-accent transition-colors"
             >
               <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              +91 9110593766
+              +91 8919247590
             </a>
           </div>
         </div>
         
         <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-primary-foreground/10 text-center text-xs text-primary-foreground/50">
-          © {new Date().getFullYear()} Habsen Tech Communication. All rights reserved.
+          © {new Date().getFullYear()} Habsen Tech. All rights reserved.
         </div>
       </div>
     </footer>
