@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -9,11 +10,15 @@ import { PatientInfoForm, PatientInfo, PatientVitals } from '@/components/Patien
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { TranscriptionEntry, PrescriptionReport, SUPPORTED_LANGUAGES } from '@/types/prescription';
 import { Button } from '@/components/ui/button';
-import { FileText, RotateCcw } from 'lucide-react';
+import { FileText, RotateCcw, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading, credits, refreshCredits } = useAuth();
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [transcriptions, setTranscriptions] = useState<TranscriptionEntry[]>([]);
   const [prescription, setPrescription] = useState<PrescriptionReport | null>(null);
@@ -64,9 +69,22 @@ const Index = () => {
   const isChild = patientInfo.gender?.includes('child');
   const isFemale = patientInfo.gender === 'female' || patientInfo.gender === 'child-female';
 
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
   const handleGeneratePrescription = async () => {
     if (transcriptions.length === 0) {
       toast.error('No transcription available. Please record a consultation first.');
+      return;
+    }
+
+    // Check credits
+    if (!credits || credits.remaining <= 0) {
+      toast.error('No credits remaining. Please contact admin to add more credits.');
       return;
     }
 
@@ -120,6 +138,33 @@ const Index = () => {
           consultationTranscript: fullTranscript,
         };
         setPrescription(report);
+
+        // Deduct credit and save consultation
+        if (user) {
+          // Encrypt and save consultation
+          const encryptedData = btoa(JSON.stringify(report)); // Basic encoding for now
+          
+          await supabase.from('consultations').insert({
+            user_id: user.id,
+            patient_name: patientInfo.name || 'Unknown',
+            patient_age: patientInfo.age,
+            patient_gender: patientInfo.gender,
+            patient_address: patientInfo.address,
+            patient_occupation: patientInfo.occupation,
+            consultation_data_encrypted: encryptedData,
+            diagnosis: data.prescription.diagnosis,
+          });
+
+          // Deduct credit
+          const currentUsed = credits?.used || 0;
+          await supabase.from('user_credits')
+            .update({ used_credits: currentUsed + 1 })
+            .eq('user_id', user.id);
+
+          // Refresh credits display
+          await refreshCredits();
+        }
+
         toast.success('Prescription report generated successfully!');
       }
     } catch (err) {
@@ -139,11 +184,30 @@ const Index = () => {
     toast.success('Session reset. Ready for new consultation.');
   };
 
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
       <main className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        {/* Low Credits Warning */}
+        {credits && credits.remaining <= 2 && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              You have only {credits.remaining} credit{credits.remaining !== 1 ? 's' : ''} remaining. 
+              Contact admin to add more credits.
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Language Selection */}
         <div className="mb-4 sm:mb-8 flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
