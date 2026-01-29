@@ -14,16 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      consultation_preferences: {
+        Row: {
+          created_at: string | null
+          default_advice: string[] | null
+          default_follow_up_days: number | null
+          id: string
+          show_advice: boolean | null
+          show_birth_history: boolean | null
+          show_diet_chart: boolean | null
+          show_drug_history: boolean | null
+          show_family_history: boolean | null
+          show_investigations: boolean | null
+          show_past_history: boolean | null
+          show_pregnancy_history: boolean | null
+          show_vaccination_history: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          default_advice?: string[] | null
+          default_follow_up_days?: number | null
+          id?: string
+          show_advice?: boolean | null
+          show_birth_history?: boolean | null
+          show_diet_chart?: boolean | null
+          show_drug_history?: boolean | null
+          show_family_history?: boolean | null
+          show_investigations?: boolean | null
+          show_past_history?: boolean | null
+          show_pregnancy_history?: boolean | null
+          show_vaccination_history?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          default_advice?: string[] | null
+          default_follow_up_days?: number | null
+          id?: string
+          show_advice?: boolean | null
+          show_birth_history?: boolean | null
+          show_diet_chart?: boolean | null
+          show_drug_history?: boolean | null
+          show_family_history?: boolean | null
+          show_investigations?: boolean | null
+          show_past_history?: boolean | null
+          show_pregnancy_history?: boolean | null
+          show_vaccination_history?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      consultations: {
+        Row: {
+          consultation_data_encrypted: string
+          consultation_date: string | null
+          created_at: string | null
+          diagnosis: string | null
+          id: string
+          patient_address: string | null
+          patient_age: string | null
+          patient_gender: string | null
+          patient_name: string
+          patient_occupation: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          consultation_data_encrypted: string
+          consultation_date?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          id?: string
+          patient_address?: string | null
+          patient_age?: string | null
+          patient_gender?: string | null
+          patient_name: string
+          patient_occupation?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          consultation_data_encrypted?: string
+          consultation_date?: string | null
+          created_at?: string | null
+          diagnosis?: string | null
+          id?: string
+          patient_address?: string | null
+          patient_age?: string | null
+          patient_gender?: string | null
+          patient_name?: string
+          patient_occupation?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          clinic_address: string | null
+          clinic_logo_url: string | null
+          clinic_name: string | null
+          clinic_phone: string | null
+          created_at: string | null
+          doctor_name: string | null
+          doctor_qualifications: string | null
+          email: string
+          full_name: string | null
+          id: string
+          registration_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          clinic_address?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
+          clinic_phone?: string | null
+          created_at?: string | null
+          doctor_name?: string | null
+          doctor_qualifications?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          registration_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          clinic_address?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
+          clinic_phone?: string | null
+          created_at?: string | null
+          doctor_name?: string | null
+          doctor_qualifications?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          registration_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          created_at: string | null
+          id: string
+          total_credits: number | null
+          updated_at: string | null
+          used_credits: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          total_credits?: number | null
+          updated_at?: string | null
+          used_credits?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          total_credits?: number | null
+          updated_at?: string | null
+          used_credits?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_remaining_credits: {
+        Args: { check_user_id: string }
+        Returns: number
+      }
+      has_credits: { Args: { check_user_id: string }; Returns: boolean }
+      is_admin: { Args: { check_user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +346,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
